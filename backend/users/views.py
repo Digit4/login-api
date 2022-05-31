@@ -23,15 +23,15 @@ class LoginView(APIView):
 		user = User.objects.filter(email=email).first()
 
 		if user is None:
-			return AuthenticationFailed("User Not Found!")
+			raise AuthenticationFailed("User Not Found!")
 
 		if not user.check_password(password):
 			raise AuthenticationFailed("Incorrect Password")
 
 		payload = {
 		"id" : user.id,
-		'exp': datetime.datetime.utcnow()+datetime.timedelta(minutes=60),
-		'iat': datetime.datetime.utcnow()
+		'exp': datetime.datetime.now()+datetime.timedelta(minutes=60),
+		'iat': datetime.datetime.now()
 		}
 		time_format = "%d/%m/%y %H:%M:%S.%f"
 		timeout = str(payload['exp'])
@@ -39,8 +39,8 @@ class LoginView(APIView):
 		token = jwt.encode(payload, 'secret', algorithm='HS256')
 
 		response = Response({"jwt_token":token,"expiration":timeout})
-		response.set_cookie(key='jwt_token', value=token,httponly=True)
-		response.set_cookie(key="expiration", value=timeout,httponly=True)
+		response.set_cookie(key='jwt_token', value=token,httponly=False)
+		response.set_cookie(key="expiration", value=timeout,httponly=False)
 
 		return response
 
